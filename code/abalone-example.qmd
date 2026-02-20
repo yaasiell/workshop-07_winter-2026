@@ -94,7 +94,7 @@ plot(abalone_model)    # plot residuals
 ```
 **Personal Notes** Residuals seem homoscedastic (consistent across values) based on residuals vs fitted and scale loaction plots. residuals also seem normally distributed based on QQ plot. No major outliers based on Residuals vs. leverage plot
 
-**Written Communications** we evaluated model assumptions visually . for homscedasticity of residuals we used residuals vs. fitted and scale location plots. for normality of residuals, we used QQ plots . based on our diagnositcs there were no major deviations from homoscedasticity or normality or residuals ther were also no outliers that might influence model estiamtes or predictors . 
+**Written Communications** we evaluated model assumptions visually . for homoscedasticity of residuals we used residuals vs. fitted and scale location plots. for normality of residuals, we used QQ plots . based on our diagnostics there were no major deviations from homoscedasticity or normality or residuals there were also no outliers that might influence model estimates or predictors . 
 ### Model summary
 
 ```{r abalone-model-summary}
@@ -106,11 +106,11 @@ summary(abalone_model)
 
 What is the slope estimate (with standard error?)  
 
-**insert your response here**  
+**2.98 +- 0.76 (SE) with each increase in pH , the model predict an increase of 2.98 +- 0.76 (SE) in change in shell surfface area per day (mm^2^ d^-1^).**  
 
 What is the intercept estimate (with standard error?)  
 
-**insert your response here**
+**18.5 +- 6.16 (SE). When pH = 0, the model predicts that abalone change in shell surface area per day is -18.5 +- 6.16 (note to self: this is not necessarily biologically realistic , but is something the model generates as an estimate).**
 
 ### Generating predictions
 

@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="your name here">
+
+<title>Linear regression: Abalone growth and pH example</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="abalone-example_files/libs/clipboard/clipboard.min.js"></script>
+<script src="abalone-example_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="abalone-example_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="abalone-example_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="abalone-example_files/libs/quarto-html/popper.min.js"></script>
+<script src="abalone-example_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="abalone-example_files/libs/quarto-html/anchor.min.js"></script>
+<link href="abalone-example_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="abalone-example_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="abalone-example_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="abalone-example_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="abalone-example_files/libs/bootstrap/bootstrap-d6a003b94517c951b2d65075d42fb01b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="abalone-example_files/libs/tabwid-1.1.3/tabwid.css" rel="stylesheet">
+<script src="abalone-example_files/libs/tabwid-1.1.3/tabwid.js"></script>
+
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#set-up" id="toc-set-up" class="nav-link active" data-scroll-target="#set-up">Set up</a></li>
+  <li><a href="#abalone-example" id="toc-abalone-example" class="nav-link" data-scroll-target="#abalone-example">Abalone example</a>
+  <ul class="collapse">
+  <li><a href="#a.-questions-and-hypotheses" id="toc-a.-questions-and-hypotheses" class="nav-link" data-scroll-target="#a.-questions-and-hypotheses">a. Questions and hypotheses</a></li>
+  <li><a href="#b.-cleaning" id="toc-b.-cleaning" class="nav-link" data-scroll-target="#b.-cleaning">b. Cleaning</a></li>
+  <li><a href="#c.-exploratory-data-visualization" id="toc-c.-exploratory-data-visualization" class="nav-link" data-scroll-target="#c.-exploratory-data-visualization">c.&nbsp;Exploratory data visualization</a></li>
+  <li><a href="#d.-abalone-model" id="toc-d.-abalone-model" class="nav-link" data-scroll-target="#d.-abalone-model">d.&nbsp;Abalone model</a>
+  <ul class="collapse">
+  <li><a href="#model-fitting" id="toc-model-fitting" class="nav-link" data-scroll-target="#model-fitting">Model fitting</a></li>
+  <li><a href="#diagnostics" id="toc-diagnostics" class="nav-link" data-scroll-target="#diagnostics">Diagnostics</a></li>
+  <li><a href="#model-summary" id="toc-model-summary" class="nav-link" data-scroll-target="#model-summary">Model summary</a></li>
+  <li><a href="#generating-predictions" id="toc-generating-predictions" class="nav-link" data-scroll-target="#generating-predictions">Generating predictions</a></li>
+  <li><a href="#why-generate-model-predictions" id="toc-why-generate-model-predictions" class="nav-link" data-scroll-target="#why-generate-model-predictions">Why generate model predictions?</a></li>
+  <li><a href="#visualizing-model-predictions-and-data" id="toc-visualizing-model-predictions-and-data" class="nav-link" data-scroll-target="#visualizing-model-predictions-and-data">Visualizing model predictions and data</a></li>
+  <li><a href="#creating-a-table-with-model-coefficients-95-confidence-intervals-and-more" id="toc-creating-a-table-with-model-coefficients-95-confidence-intervals-and-more" class="nav-link" data-scroll-target="#creating-a-table-with-model-coefficients-95-confidence-intervals-and-more">Creating a table with model coefficients, 95% confidence intervals, and more</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Linear regression: Abalone growth and pH example</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>your name here </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">Invalid Date</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="set-up" class="level1">
+<h1>Set up</h1>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse) <span class="co"># general use</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor) <span class="co"># cleaning data frames</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here) <span class="co"># file/folder organization</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readxl) <span class="co"># reading .xlsx files</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggeffects) <span class="co"># generating model predictions</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gtsummary) <span class="co"># generating summary tables for models</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co"># abalone data from Hamilton et al. 2022</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>abalone <span class="ot">&lt;-</span> <span class="fu">read_xlsx</span>(<span class="fu">here</span>(<span class="st">"data"</span>, <span class="st">"Abalone IMTA_growth and pH.xlsx"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="abalone-example" class="level1">
+<h1>Abalone example</h1>
+<p>Data from Hamilton et al.&nbsp;2022. “Integrated multi-trophic aquaculture mitigates the effects of ocean acidification: Seaweeds raise system pH and improve growth of juvenile abalone.” https://doi.org/10.1016/j.aquaculture.2022.738571</p>
+<section id="a.-questions-and-hypotheses" class="level2">
+<h2 class="anchored" data-anchor-id="a.-questions-and-hypotheses">a. Questions and hypotheses</h2>
+<p>Question: How does pH predict abalone growth (measured in change in shell surface area per day, mm<sup>2</sup> d<sup>-1</sup>)?</p>
+<p>H<sub>0</sub>: <strong>pH does not predict abalone growth (change in shell surface area per day, mm<sup>2</sup> d<sup>-1</sup>).</strong></p>
+<p>H<sub>A</sub>: <strong>pH predicts abalone growth (change in shell surface are per day, , mm<sup>2</sup> d<sup>-1</sup>) </strong></p>
+</section>
+<section id="b.-cleaning" class="level2">
+<h2 class="anchored" data-anchor-id="b.-cleaning">b. Cleaning</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>abalone_clean <span class="ot">&lt;-</span> abalone <span class="sc">|&gt;</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  <span class="co"># cleaning up all column names</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">clean_names</span>()  <span class="sc">|&gt;</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># selecting columns of interest </span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(mean_p_h, change_in_area_mm2_d_1_25)  <span class="sc">|&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># renaming column names for easier use</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">mean_ph =</span> mean_p_h, </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">change_in_area =</span> change_in_area_mm2_d_1_25)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Don’t forget to look at your data! Use <code>View(abalone_clean)</code> in the <em>Console</em>.</p>
+</section>
+<section id="c.-exploratory-data-visualization" class="level2">
+<h2 class="anchored" data-anchor-id="c.-exploratory-data-visualization">c.&nbsp;Exploratory data visualization</h2>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># base layer ggplot call</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> abalone_clean, <span class="co"># data set should be clean</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> mean_ph, <span class="co"># x axis should be predictor, y axis should be response</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> change_in_area)) <span class="sc">+</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="co"># first layer: points to represent average change in shell surface area for each pair of tanks</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">4</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>             <span class="at">stroke =</span> <span class="dv">1</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>             <span class="at">fill =</span> <span class="st">"firebrick4"</span>,</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> <span class="dv">21</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="abalone-example_files/figure-html/abalone-scatterplot-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Where does the missing value come from?</p>
+<p><strong>insert response here</strong></p>
+<p>Don’t forget to turn your warnings off either in the individual code chunk or in the YAML at the top of the file.</p>
+</section>
+<section id="d.-abalone-model" class="level2">
+<h2 class="anchored" data-anchor-id="d.-abalone-model">d.&nbsp;Abalone model</h2>
+<section id="model-fitting" class="level3">
+<h3 class="anchored" data-anchor-id="model-fitting">Model fitting</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>abalone_model <span class="ot">&lt;-</span> <span class="fu">lm</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  change_in_area <span class="sc">~</span> mean_ph, <span class="co"># </span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> abalone_clean      <span class="co"># </span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="diagnostics" class="level3">
+<h3 class="anchored" data-anchor-id="diagnostics">Diagnostics</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">2</span>))   <span class="co"># </span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(abalone_model)    <span class="co"># </span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="abalone-example_files/figure-html/abalone-model-diagnostics-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="model-summary" class="level3">
+<h3 class="anchored" data-anchor-id="model-summary">Model summary</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># more information about the model</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(abalone_model)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = change_in_area ~ mean_ph, data = abalone_clean)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-0.42714 -0.29282  0.08769  0.21258  0.43965 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)   
+(Intercept) -18.5010     6.1601  -3.003  0.01488 * 
+mean_ph       2.9827     0.7596   3.926  0.00348 **
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.3063 on 9 degrees of freedom
+  (1 observation deleted due to missingness)
+Multiple R-squared:  0.6314,    Adjusted R-squared:  0.5905 
+F-statistic: 15.42 on 1 and 9 DF,  p-value: 0.003477</code></pre>
+</div>
+</div>
+<p>What is the slope estimate (with standard error?)</p>
+<p><strong>insert your response here</strong></p>
+<p>What is the intercept estimate (with standard error?)</p>
+<p><strong>insert your response here</strong></p>
+</section>
+<section id="generating-predictions" class="level3">
+<h3 class="anchored" data-anchor-id="generating-predictions">Generating predictions</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># creating a new object called abalone_preds</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>abalone_preds <span class="ot">&lt;-</span> <span class="fu">ggpredict</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  abalone_model,      <span class="co"># model object</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">terms =</span> <span class="st">"mean_ph"</span>   <span class="co"># predictor (in quotation marks)</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># display the predictions</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>abalone_preds</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Predicted values of change_in_area
+
+mean_ph | Predicted |     95% CI
+--------------------------------
+   7.94 |      5.19 | 4.83, 5.54
+   7.95 |      5.21 | 4.86, 5.55
+   8.06 |      5.53 | 5.30, 5.76
+   8.10 |      5.67 | 5.46, 5.88
+   8.10 |      5.67 | 5.46, 5.88
+   8.14 |      5.77 | 5.55, 5.98
+   8.15 |      5.81 | 5.59, 6.04
+   8.33 |      6.36 | 5.92, 6.80</code></pre>
+</div>
+</div>
+<p>Look at the column names using <code>colnames(abalone_preds)</code> in the Console.</p>
+<p>What are the column names?</p>
+<p><strong>insert your notes here</strong></p>
+<p>Look at the actual object (by clicking on it in Environment).</p>
+<p>Look at the class of the object using <code>class(abalone_preds)</code> in the Console.</p>
+<p>What is this type of object?</p>
+<p><strong>insert your notes here</strong></p>
+<p>View <code>abalone_preds</code> like a data frame.</p>
+</section>
+<section id="why-generate-model-predictions" class="level3">
+<h3 class="anchored" data-anchor-id="why-generate-model-predictions">Why generate model predictions?</h3>
+<p>This dataset does not include any <em>actual</em> observations of abalone growth at pH = 8.</p>
+<p>However, the model can tell us a <em>prediction</em> for what abalone growth could be if pH = 8 based on the existing data.</p>
+<p>Figure out what abalone growth the model would <em>predict</em> at pH = 8.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># finding the model prediction at a specific value</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu">ggpredict</span>(</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  abalone_model,      <span class="co"># model object</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">terms =</span> <span class="st">"mean_ph[8]"</span>   <span class="co"># predictor (in quotation marks) and predictor value in brackets</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Predicted values of change_in_area
+
+mean_ph | Predicted |     95% CI
+--------------------------------
+      8 |      5.36 | 5.08, 5.64</code></pre>
+</div>
+</div>
+<p>How would you interpret this?</p>
+<p><strong>insert your response here</strong></p>
+</section>
+<section id="visualizing-model-predictions-and-data" class="level3">
+<h3 class="anchored" data-anchor-id="visualizing-model-predictions-and-data">Visualizing model predictions and data</h3>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># base layer: ggplot</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># using clean data frame</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="at">data =</span> abalone_clean,</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> mean_ph,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> change_in_area)) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="abalone-example_files/figure-html/abalone-model-final-figure-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># first layer: points representing abalones</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">4</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">stroke =</span> <span class="dv">1</span>,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">fill =</span> <span class="st">"firebrick4"</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>             <span class="at">shape =</span> <span class="dv">21</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>geom_point: na.rm = FALSE
+stat_identity: na.rm = FALSE
+position_identity </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># second layer: ribbon representing confidence interval</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># using predictions data frame</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="at">data =</span> abalone_preds,</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">x =</span> x,</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>                  <span class="at">y =</span> predicted,</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymin =</span> conf.low,</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>                  <span class="at">ymax =</span> conf.high),</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha =</span> <span class="fl">0.1</span>) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>mapping: x = ~x, y = ~predicted, ymin = ~conf.low, ymax = ~conf.high 
+geom_ribbon: na.rm = FALSE, orientation = NA, lineend = butt, linejoin = round, linemitre = 10, outline.type = both
+stat_identity: na.rm = FALSE
+position_identity </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># third layer: line representing model predictions</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># using predictions data frame</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> abalone_preds,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>            <span class="fu">aes</span>(<span class="at">x =</span> x,</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                <span class="at">y =</span> predicted)) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>mapping: x = ~x, y = ~predicted 
+geom_line: na.rm = FALSE, orientation = NA, arrow = NULL, arrow.fill = NULL, lineend = butt, linejoin = round, linemitre = 10
+stat_identity: na.rm = FALSE
+position_identity </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># axis labels</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">"Mean pH"</span>, </span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="fu">expression</span>(<span class="st">"Change in shell area ("</span><span class="sc">*</span>mm<span class="sc">^</span>{<span class="dv">2</span>}<span class="sc">~</span>d<span class="sc">^-</span><span class="dv">1</span><span class="sc">*</span><span class="st">")"</span>)) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;ggplot2::labels&gt; List of 2
+ $ x: chr "Mean pH"
+ $ y:  expression("Change in shell area (" * mm^{  2 } ~ d^-1 * ")")</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># theme</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;theme&gt; List of 144
+ $ line                            : &lt;ggplot2::element_line&gt;
+  ..@ colour       : chr "black"
+  ..@ linewidth    : num 0.5
+  ..@ linetype     : num 1
+  ..@ lineend      : chr "butt"
+  ..@ linejoin     : chr "round"
+  ..@ arrow        : logi FALSE
+  ..@ arrow.fill   : chr "black"
+  ..@ inherit.blank: logi TRUE
+ $ rect                            : &lt;ggplot2::element_rect&gt;
+  ..@ fill         : chr "white"
+  ..@ colour       : chr "black"
+  ..@ linewidth    : num 0.5
+  ..@ linetype     : num 1
+  ..@ linejoin     : chr "round"
+  ..@ inherit.blank: logi TRUE
+ $ text                            : &lt;ggplot2::element_text&gt;
+  ..@ family       : chr ""
+  ..@ face         : chr "plain"
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : chr "black"
+  ..@ size         : num 11
+  ..@ hjust        : num 0.5
+  ..@ vjust        : num 0.5
+  ..@ angle        : num 0
+  ..@ lineheight   : num 0.9
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 0 0 0 0
+  ..@ debug        : logi FALSE
+  ..@ inherit.blank: logi TRUE
+ $ title                           : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : NULL
+  ..@ vjust        : NULL
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : NULL
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ point                           : &lt;ggplot2::element_point&gt;
+  ..@ colour       : chr "black"
+  ..@ shape        : num 19
+  ..@ size         : num 1.5
+  ..@ fill         : chr "white"
+  ..@ stroke       : num 0.5
+  ..@ inherit.blank: logi TRUE
+ $ polygon                         : &lt;ggplot2::element_polygon&gt;
+  ..@ fill         : chr "white"
+  ..@ colour       : chr "black"
+  ..@ linewidth    : num 0.5
+  ..@ linetype     : num 1
+  ..@ linejoin     : chr "round"
+  ..@ inherit.blank: logi TRUE
+ $ geom                            : &lt;ggplot2::element_geom&gt;
+  ..@ ink        : chr "black"
+  ..@ paper      : chr "white"
+  ..@ accent     : chr "#3366FF"
+  ..@ linewidth  : num 0.5
+  ..@ borderwidth: num 0.5
+  ..@ linetype   : int 1
+  ..@ bordertype : int 1
+  ..@ family     : chr ""
+  ..@ fontsize   : num 3.87
+  ..@ pointsize  : num 1.5
+  ..@ pointshape : num 19
+  ..@ colour     : NULL
+  ..@ fill       : NULL
+ $ spacing                         : 'simpleUnit' num 5.5points
+  ..- attr(*, "unit")= int 8
+ $ margins                         : &lt;ggplot2::margin&gt; num [1:4] 5.5 5.5 5.5 5.5
+ $ aspect.ratio                    : NULL
+ $ axis.title                      : NULL
+ $ axis.title.x                    : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : NULL
+  ..@ vjust        : num 1
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 2.75 0 0 0
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.title.x.top                : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : NULL
+  ..@ vjust        : num 0
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 0 0 2.75 0
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.title.x.bottom             : NULL
+ $ axis.title.y                    : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : NULL
+  ..@ vjust        : num 1
+  ..@ angle        : num 90
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 0 2.75 0 0
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.title.y.left               : NULL
+ $ axis.title.y.right              : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : NULL
+  ..@ vjust        : num 1
+  ..@ angle        : num -90
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 0 0 0 2.75
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.text                       : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : chr "#4D4D4DFF"
+  ..@ size         : 'rel' num 0.8
+  ..@ hjust        : NULL
+  ..@ vjust        : NULL
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : NULL
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.text.x                     : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : NULL
+  ..@ vjust        : num 1
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 2.2 0 0 0
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.text.x.top                 : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : NULL
+  ..@ vjust        : NULL
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 0 0 4.95 0
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.text.x.bottom              : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : NULL
+  ..@ vjust        : NULL
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 4.95 0 0 0
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.text.y                     : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : num 1
+  ..@ vjust        : NULL
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 0 2.2 0 0
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.text.y.left                : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : NULL
+  ..@ vjust        : NULL
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 0 4.95 0 0
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.text.y.right               : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : NULL
+  ..@ vjust        : NULL
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 0 0 0 4.95
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.text.theta                 : NULL
+ $ axis.text.r                     : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : num 0.5
+  ..@ vjust        : NULL
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : &lt;ggplot2::margin&gt; num [1:4] 0 2.2 0 2.2
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ axis.ticks                      : &lt;ggplot2::element_blank&gt;
+ $ axis.ticks.x                    : NULL
+ $ axis.ticks.x.top                : NULL
+ $ axis.ticks.x.bottom             : NULL
+ $ axis.ticks.y                    : NULL
+ $ axis.ticks.y.left               : NULL
+ $ axis.ticks.y.right              : NULL
+ $ axis.ticks.theta                : NULL
+ $ axis.ticks.r                    : NULL
+ $ axis.minor.ticks.x.top          : NULL
+ $ axis.minor.ticks.x.bottom       : NULL
+ $ axis.minor.ticks.y.left         : NULL
+ $ axis.minor.ticks.y.right        : NULL
+ $ axis.minor.ticks.theta          : NULL
+ $ axis.minor.ticks.r              : NULL
+ $ axis.ticks.length               : 'rel' num 0.5
+ $ axis.ticks.length.x             : NULL
+ $ axis.ticks.length.x.top         : NULL
+ $ axis.ticks.length.x.bottom      : NULL
+ $ axis.ticks.length.y             : NULL
+ $ axis.ticks.length.y.left        : NULL
+ $ axis.ticks.length.y.right       : NULL
+ $ axis.ticks.length.theta         : NULL
+ $ axis.ticks.length.r             : NULL
+ $ axis.minor.ticks.length         : 'rel' num 0.75
+ $ axis.minor.ticks.length.x       : NULL
+ $ axis.minor.ticks.length.x.top   : NULL
+ $ axis.minor.ticks.length.x.bottom: NULL
+ $ axis.minor.ticks.length.y       : NULL
+ $ axis.minor.ticks.length.y.left  : NULL
+ $ axis.minor.ticks.length.y.right : NULL
+ $ axis.minor.ticks.length.theta   : NULL
+ $ axis.minor.ticks.length.r       : NULL
+ $ axis.line                       : &lt;ggplot2::element_blank&gt;
+ $ axis.line.x                     : NULL
+ $ axis.line.x.top                 : NULL
+ $ axis.line.x.bottom              : NULL
+ $ axis.line.y                     : NULL
+ $ axis.line.y.left                : NULL
+ $ axis.line.y.right               : NULL
+ $ axis.line.theta                 : NULL
+ $ axis.line.r                     : NULL
+ $ legend.background               : &lt;ggplot2::element_blank&gt;
+ $ legend.margin                   : NULL
+ $ legend.spacing                  : 'rel' num 2
+ $ legend.spacing.x                : NULL
+ $ legend.spacing.y                : NULL
+ $ legend.key                      : &lt;ggplot2::element_blank&gt;
+ $ legend.key.size                 : 'simpleUnit' num 1.2lines
+  ..- attr(*, "unit")= int 3
+ $ legend.key.height               : NULL
+ $ legend.key.width                : NULL
+ $ legend.key.spacing              : NULL
+ $ legend.key.spacing.x            : NULL
+ $ legend.key.spacing.y            : NULL
+ $ legend.key.justification        : NULL
+ $ legend.frame                    : NULL
+ $ legend.ticks                    : NULL
+ $ legend.ticks.length             : 'rel' num 0.2
+ $ legend.axis.line                : NULL
+ $ legend.text                     : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : 'rel' num 0.8
+  ..@ hjust        : NULL
+  ..@ vjust        : NULL
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : NULL
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ legend.text.position            : NULL
+ $ legend.title                    : &lt;ggplot2::element_text&gt;
+  ..@ family       : NULL
+  ..@ face         : NULL
+  ..@ italic       : chr NA
+  ..@ fontweight   : num NA
+  ..@ fontwidth    : num NA
+  ..@ colour       : NULL
+  ..@ size         : NULL
+  ..@ hjust        : num 0
+  ..@ vjust        : NULL
+  ..@ angle        : NULL
+  ..@ lineheight   : NULL
+  ..@ margin       : NULL
+  ..@ debug        : NULL
+  ..@ inherit.blank: logi TRUE
+ $ legend.title.position           : NULL
+ $ legend.position                 : chr "right"
+ $ legend.position.inside          : NULL
+ $ legend.direction                : NULL
+ $ legend.byrow                    : NULL
+ $ legend.justification            : chr "center"
+ $ legend.justification.top        : NULL
+ $ legend.justification.bottom     : NULL
+ $ legend.justification.left       : NULL
+ $ legend.justification.right      : NULL
+ $ legend.justification.inside     : NULL
+  [list output truncated]
+ @ complete: logi TRUE
+ @ validate: logi TRUE</code></pre>
+</div>
+</div>
+</section>
+<section id="creating-a-table-with-model-coefficients-95-confidence-intervals-and-more" class="level3">
+<h3 class="anchored" data-anchor-id="creating-a-table-with-model-coefficients-95-confidence-intervals-and-more">Creating a table with model coefficients, 95% confidence intervals, and more</h3>
+<p><strong>Note:</strong> both these functions are from <code>gtsummary</code>.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tbl_regression</span>(abalone_model,</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>               <span class="co"># make sure the y-intercept estimate is shown</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">intercept =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>               <span class="co"># changing labels in "Characteristic" column</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">label =</span> <span class="fu">list</span>(<span class="st">`</span><span class="at">(Intercept)</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Intercept"</span>,</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>                            <span class="at">mean_ph =</span> <span class="st">"pH"</span>)) <span class="sc">|&gt;</span> </span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="co"># changing header text</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">modify_header</span>(<span class="at">label =</span> <span class="st">"**Variable**"</span>,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">estimate =</span> <span class="st">"**Estimate**"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># turning table into a flextable (makes things easier to render to word or PDF)</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">as_flex_table</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div class="tabwid"><style>.cl-f9c3f78e{}.cl-f9c14412{font-family:'Helvetica';font-size:11pt;font-weight:bold;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-f9c1441c{font-family:'Helvetica';font-size:11pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-f9c257bc{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:2pt;padding-top:2pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f9c257bd{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:2pt;padding-top:2pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f9c257c6{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f9c257c7{margin:0;text-align:center;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f9c257c8{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-f9c26612{width:0.88in;background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c26613{width:0.922in;background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c26614{width:0.854in;background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c26615{width:0.82in;background-color:transparent;vertical-align: middle;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 1pt solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c26616{width:0.88in;background-color:transparent;vertical-align: top;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c26617{width:0.922in;background-color:transparent;vertical-align: top;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c26618{width:0.854in;background-color:transparent;vertical-align: top;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c2661c{width:0.82in;background-color:transparent;vertical-align: top;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c2661d{width:0.88in;background-color:transparent;vertical-align: top;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c2661e{width:0.922in;background-color:transparent;vertical-align: top;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c2661f{width:0.854in;background-color:transparent;vertical-align: top;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c26626{width:0.82in;background-color:transparent;vertical-align: top;border-bottom: 1pt solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c26627{width:0.88in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c26628{width:0.922in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c26629{width:0.854in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-f9c2662a{width:0.82in;background-color:transparent;vertical-align: middle;border-bottom: 0 solid rgba(255, 255, 255, 0.00);border-top: 0 solid rgba(255, 255, 255, 0.00);border-left: 0 solid rgba(255, 255, 255, 0.00);border-right: 0 solid rgba(255, 255, 255, 0.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style><table data-quarto-disable-processing="true" class="cl-f9c3f78e"><thead><tr style="overflow-wrap:break-word;"><th class="cl-f9c26612"><p class="cl-f9c257bc"><span class="cl-f9c14412">Variable</span></p></th><th class="cl-f9c26613"><p class="cl-f9c257bd"><span class="cl-f9c14412">Estimate</span></p></th><th class="cl-f9c26614"><p class="cl-f9c257bd"><span class="cl-f9c14412">95% CI</span></p></th><th class="cl-f9c26615"><p class="cl-f9c257bd"><span class="cl-f9c14412">p-value</span></p></th></tr></thead><tbody><tr style="overflow-wrap:break-word;"><td class="cl-f9c26616"><p class="cl-f9c257c6"><span class="cl-f9c1441c">Intercept</span></p></td><td class="cl-f9c26617"><p class="cl-f9c257c7"><span class="cl-f9c1441c">-19</span></p></td><td class="cl-f9c26618"><p class="cl-f9c257c7"><span class="cl-f9c1441c">-32, -4.6</span></p></td><td class="cl-f9c2661c"><p class="cl-f9c257c7"><span class="cl-f9c1441c">0.015</span></p></td></tr><tr style="overflow-wrap:break-word;"><td class="cl-f9c2661d"><p class="cl-f9c257c6"><span class="cl-f9c1441c">pH</span></p></td><td class="cl-f9c2661e"><p class="cl-f9c257c7"><span class="cl-f9c1441c">3.0</span></p></td><td class="cl-f9c2661f"><p class="cl-f9c257c7"><span class="cl-f9c1441c">1.3, 4.7</span></p></td><td class="cl-f9c26626"><p class="cl-f9c257c7"><span class="cl-f9c1441c">0.003</span></p></td></tr></tbody><tfoot><tr style="overflow-wrap:break-word;"><td colspan="4" class="cl-f9c26627"><p class="cl-f9c257c8"><span class="cl-f9c1441c">Abbreviation: CI = Confidence Interval</span></p></td></tr></tfoot></table></div>
+</div>
+</div>
+<p><strong>END OF ABALONE EXAMPLE</strong></p>
+</section>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

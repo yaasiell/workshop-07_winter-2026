@@ -55,11 +55,11 @@ Don't forget to look at your data! Use `View(abalone_clean)` in the _Console_.
 ## c. Exploratory data visualization
 
 ```{r abalone-scatterplot}
-# 
-ggplot(data = abalone_clean, # 
-       aes(x = mean_ph, # 
-           y = change_in_area)) 
-  # 
+# base layer ggplot call
+ggplot(data = abalone_clean, # data set should be clean
+       aes(x = mean_ph, # x axis should be predictor, y axis should be response
+           y = change_in_area)) +
+  # first layer: points to represent average change in shell surface area for each pair of tanks
   geom_point(size = 4,
              stroke = 1,
              fill = "firebrick4",

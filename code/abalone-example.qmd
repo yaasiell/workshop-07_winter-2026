@@ -63,7 +63,6 @@ ggplot(data = abalone_clean,
   geom_point(size = 4,
              stroke = 1,
              fill = "firebrick4",
-             color = "black",
              shape = 21)
 ```
 
@@ -130,7 +129,13 @@ Look at the column names using `colnames(abalone_preds)` in the Console.
 
 What are the column names?  
 
-**insert your notes here**  
+**x: is the predictor variable values (pH)**
+
+**predicted: model predictions for change in shell surface area per day**
+
+**std. error: standar error, precision of the predictor**
+
+**conf.low and conf.high: range for the 95% CI around model predictions**
 
 Look at the actual object (by clicking on it in Environment).  
 

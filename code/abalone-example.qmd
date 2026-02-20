@@ -165,7 +165,7 @@ ggpredict(
 
 How would you interpret this?  
 
-**insert your response here**
+**at pH = 8, the model predicts that abalone change in shell surface area per day should be 5.36 mm^2^ d^-1^ (95% CI: [5.08, 5.64]**
 
 ### Visualizing model predictions and data
 

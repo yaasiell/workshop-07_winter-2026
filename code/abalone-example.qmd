@@ -34,18 +34,18 @@ Question: How does pH predict abalone growth (measured in change in shell surfac
 
 H~0~: **pH does not predict abalone growth (change in shell surface area per day, mm^2^ d^-1^).**  
 
-H~A~: **pH predicts abalone growth (change in shell surface are per day **
+H~A~: **pH predicts abalone growth (change in shell surface are per day, , mm^2^ d^-1^) **
 
 ## b. Cleaning
 
 ```{r abalone-data-cleaning}
 # 
-abalone_clean <- abalone  
-  # 
-  clean_names()  
-  # 
-  select(mean_p_h, change_in_area_mm2_d_1_25)  
-  # 
+abalone_clean <- abalone |>
+  # cleaning up all column names
+  clean_names()  |>
+  # selecting columns of interest 
+  select(mean_p_h, change_in_area_mm2_d_1_25)  |>
+  # renaming column names for easier use
   rename(mean_ph = mean_p_h, 
          change_in_area = change_in_area_mm2_d_1_25)
 ```

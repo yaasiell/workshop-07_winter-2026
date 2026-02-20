@@ -56,13 +56,14 @@ Don't forget to look at your data! Use `View(abalone_clean)` in the _Console_.
 
 ```{r abalone-scatterplot}
 # base layer ggplot call
-ggplot(data = abalone_clean, # data set should be clean
-       aes(x = mean_ph, # x axis should be predictor, y axis should be response
+# base layer ggplot call
+ggplot(data = abalone_clean,
+       aes(x = mean_ph,
            y = change_in_area)) +
-  # first layer: points to represent average change in shell surface area for each pair of tanks
   geom_point(size = 4,
              stroke = 1,
              fill = "firebrick4",
+             color = "black",
              shape = 21)
 ```
 
@@ -79,7 +80,7 @@ Don't forget to turn your warnings off either in the individual code chunk or in
 ```{r abalone-model}
 abalone_model <- lm(
   change_in_area ~ mean_ph, # 
-  data = abalone_clean      # 
+  data = abalone_clean      # data clean abalone data set
 )
 ```
 
@@ -87,11 +88,13 @@ abalone_model <- lm(
 
 ```{r abalone-model-diagnostics}
 
-par(mfrow = c(2, 2))   # 
-plot(abalone_model)    # 
+par(mfrow = c(2, 2))   # display 
+plot(abalone_model)    # plot residuals
 
 ```
+**Personal Notes** Residuals seem homoscedastic (consistent across values) based on residuals vs fitted and scale loaction plots. residuals also seem normally distributed based on QQ plot. No major outliers based on Residuals vs. leverage plot
 
+**Written Communications** we evaluated model assumptions visually . for homscedasticity of residuals we used residuals vs. fitted and scale location plots. for normality of residuals, we used QQ plots . based on our diagnositcs there were no major deviations from homoscedasticity or normality or residuals ther were also no outliers that might influence model estiamtes or predictors . 
 ### Model summary
 
 ```{r abalone-model-summary}
